@@ -3,8 +3,6 @@ Names: Kevin Pfeifle and Nolan Meeks
 CS 484-001: Data Mining
 Final Project - Census Data Classification
 '''
-
-'''
 import scipy.sparse as scp
 import numpy as np
 import imblearn.under_sampling as un
@@ -14,7 +12,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from mlxtend.preprocessing import shuffle_arrays_unison
 from sklearn.model_selection import cross_val_score
-'''
+
 ############## Data Preprocessing ###############
 """
 Reads in the baseline census training data, and the census test data.
@@ -55,14 +53,14 @@ for line in file:
 file.close()
 ############################################
 
-'''
+
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
 #undersampled = un.RepeatedEditedNearestNeighbours()
-usTrain, usLabels = undersampled.fit_sample(kbestTrain, labels)
+usTrain, usLabels = undersampled.fit_sample(censusData, labels)
 usTrain = scp.csr_matrix(usTrain)
 ############################################
-'''
+
 ###HW2 Below###
 '''
 # Create a Sparse Matrix from a list
