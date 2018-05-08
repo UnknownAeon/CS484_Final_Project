@@ -16,24 +16,40 @@ These values are stored into 2D lists of the form:
 [['v1', 'v2', 'v3', 'v4', ...], [...]],
 Where the inner lists represents each of the different census candidates.
 """
+labels = []
 file = open('../data/adult.data', 'r')
 censusData = []
 for line in file:
-    data = line.replace(',', '').split()
-    data.pop(2)
-    data.pop(2)
+    try:
+        data = line.replace(',', '').split()
+        data.pop(2)
+        data.pop(2)
+        if (data[len(data) - 1] == '<=50K'):
+            labels.append(0)
+        elif (data[len(data) - 1] == '>50K'):
+            labels.append(1)
+    except:
+        print("Improper Data Format")
     censusData.append(data)
 file.close()
 
 file = open('../data/adult.test', 'r')
 testData = []
 for line in file:
-    data = line.replace(',', '').split()
-    data.pop(2)
-    data.pop(2)
+    try:
+        data = line.replace(',', '').split()
+        data.pop(2)
+        data.pop(2)
+        if (data[len(data) - 1] == '<=50K'):
+            labels.append(0)
+        elif (data[len(data) - 1] == '>50K'):
+            labels.append(1)
+    except:
+        print("Improper Data Format")
     testData.append(data)
 file.close()
 ############################################
+
 '''
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
