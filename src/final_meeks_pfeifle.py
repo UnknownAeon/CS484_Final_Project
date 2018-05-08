@@ -171,6 +171,7 @@ file.close()
 testLabels = np.array(testLabels)
 ############################################
 
+<<<<<<< HEAD
 '''
 ################ Encoding ##################
 encoder = CategoricalEncoder()
@@ -178,6 +179,8 @@ encodedData = encoder.fit_transform(censusData, labels)
 print(encodedData)
 ############################################
 
+=======
+>>>>>>> 37badcba5ee31f3274fec17f033ba5c910e9ee08
 
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
@@ -185,7 +188,7 @@ undersampled = un.EditedNearestNeighbours()
 usTrain, usLabels = undersampled.fit_sample(censusData, labels)
 usTrain = scp.csr_matrix(usTrain)
 ############################################
-'''
+
 ###HW2 Below###
 '''
 # Create a Sparse Matrix from a list
