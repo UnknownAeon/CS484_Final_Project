@@ -1,4 +1,10 @@
 '''
+Names: Kevin Pfeifle and Nolan Meeks
+CS 484-001: Data Mining
+Final Project - Census Data Classification
+'''
+
+'''
 import scipy.sparse as scp
 import numpy as np
 import imblearn.under_sampling as un
@@ -20,32 +26,30 @@ labels = []
 file = open('../data/adult.data', 'r')
 censusData = []
 for line in file:
-    try:
-        data = line.replace(',', '').split()
-        data.pop(2)
-        data.pop(2)
-        if (data[len(data) - 1] == '<=50K'):
-            labels.append(0)
-        elif (data[len(data) - 1] == '>50K'):
-            labels.append(1)
-    except:
-        print("Improper Data Format")
+    data = line.replace(',', '').split()
+    data.pop(2)
+    data.pop(2)
+    if (data[len(data) - 1] == '<=50K'):
+        labels.append(0)
+    elif (data[len(data) - 1] == '>50K'):
+        labels.append(1)
+    else:
+        raise ValueError('Improper Data Format')
     censusData.append(data)
 file.close()
 
 file = open('../data/adult.test', 'r')
 testData = []
 for line in file:
-    try:
-        data = line.replace(',', '').split()
-        data.pop(2)
-        data.pop(2)
-        if (data[len(data) - 1] == '<=50K'):
-            labels.append(0)
-        elif (data[len(data) - 1] == '>50K'):
-            labels.append(1)
-    except:
-        print("Improper Data Format")
+    data = line.replace(',', '').split()
+    data.pop(2)
+    data.pop(2)
+    if (data[len(data) - 1] == '<=50K.'):
+        labels.append(0)
+    elif (data[len(data) - 1] == '>50K.'):
+        labels.append(1)
+    else:
+        raise ValueError('Improper Data Format')
     testData.append(data)
 file.close()
 ############################################
