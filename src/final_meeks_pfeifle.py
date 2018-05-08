@@ -22,9 +22,9 @@ These values are stored into 2D lists of the form:
 [['v1', 'v2', 'v3', 'v4', ...], [...]],
 Where the inner lists represents each of the different census candidates.
 """
-labels = []
 file = open('../data/adult.data', 'r')
 censusData = []
+labels = []
 for line in file:
     data = line.replace(',', '').split()
     data.pop(2)
@@ -40,14 +40,15 @@ file.close()
 
 file = open('../data/adult.test', 'r')
 testData = []
+testLabels = []
 for line in file:
     data = line.replace(',', '').split()
     data.pop(2)
     data.pop(2)
     if (data[len(data) - 1] == '<=50K.'):
-        labels.append(0)
+        testLabels.append(0)
     elif (data[len(data) - 1] == '>50K.'):
-        labels.append(1)
+        testLabels.append(1)
     else:
         raise ValueError('Improper Data Format')
     testData.append(data)
