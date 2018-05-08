@@ -3,24 +3,125 @@ Names: Kevin Pfeifle and Nolan Meeks
 CS 484-001: Data Mining
 Final Project - Census Data Classification
 '''
-
-'''
 import scipy.sparse as scp
 import numpy as np
 import imblearn.under_sampling as un
 from sklearn.feature_selection import SelectKBest, chi2
+from sklearn.preprocessing import CategoricalEncoder
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from mlxtend.preprocessing import shuffle_arrays_unison
 from sklearn.model_selection import cross_val_score
-'''
+
 ############## Data Preprocessing ###############
 """
 Reads in the baseline census training data, and the census test data.
 These values are stored into 2D lists of the form:
 [['v1', 'v2', 'v3', 'v4', ...], [...]],
 Where the inner lists represents each of the different census candidates.
+
+[Age, Workclass, Education (Number), Marital Status, Occupation, Relationship, Race, Sex, Capital Gain, Capital Loss, House per Week, Native Country, *Wage Label*]
+Age:
+    Continuous
+Workclass:
+    1. Private
+    2. Self-emp-not-inc
+    3. Self-emp-inc
+    4. Federal-gov
+    5. Local-gov
+    6. State-gov
+    7. Without-pay
+    8. Never-worked
+Education:
+    Continuous
+Marital Status:
+    1. Married-civ-spouse
+    2. Divorced
+    3. Never-married
+    4. Separated
+    5. Widowed
+    6. Married-spouse-absent
+    7. Married-AF-spouse
+Occupation:
+    1. Tech-support
+    2. Craft-repair
+    3. Other-service
+    4. Sales, Exec-managerial
+    5. Prof-specialty
+    6. Handlers-cleaners
+    7. Machine-op-inspct
+    8. Adm-clerical
+    9. Farming-fishing
+    10. Transport-moving
+    11. Priv-house-serv
+    12. Protective-serv
+    13. Armed-Forces
+Relationship:
+    1. Wife
+    2. Own-child
+    3. Husband
+    4. Not-in-family
+    5. Other-relative
+    6. Unmarried
+Race:
+    1. White
+    2. Asian-Pac-Islander
+    3. Amer-Indian-Eskimo
+    4. Other
+    5. Black
+Sex:
+    1. Male
+    2. Female
+Capital Gain:
+    Continuous
+Capital Loss:
+    Continuous
+House per Week:
+    Continuous
+Native Country:
+    1. United-States
+    2. Cambodia
+    3. England
+    4. Puerto-Rico
+    5. Canada
+    6. Germany
+    7. Outlying-US(Guam-USVI-etc)
+    8. India
+    9. Japan
+    10. Greece
+    11. South
+    12. China
+    13. Cuba
+    14. Iran
+    15. Honduras
+    16. Philippines
+    17. Italy
+    18. Poland
+    19. Jamaica
+    20. Vietnam
+    21. Mexico
+    22. Portugal
+    23. Ireland
+    24. France
+    25. Dominican-Republic
+    26. Laos
+    27. Ecuador
+    28. Taiwan
+    29. Haiti
+    30. Columbia
+    31. Hungary
+    32. Guatemala
+    33. Nicaragua
+    34. Scotland
+    35. Thailand
+    36. Yugoslavia
+    37. El-Salvador
+    38. Trinadad&Tobago
+    39. Peru
+    40. Hong
+    41. Holand-Netherlands
+
 """
 file = open('../data/adult.data', 'r')
 censusData = []
@@ -35,8 +136,16 @@ for line in file:
         labels.append(1)
     else:
         raise ValueError('Improper Data Format')
+    for i in range(len(data)):
+        try:
+            data[i] = int(data[i])
+        except:
+            # We don't want to do anything if it can't cast - silently catch and move on.
+            pass
     censusData.append(data)
 file.close()
+labels = np.array(labels)
+print(censusData)
 
 file = open('../data/adult.test', 'r')
 testData = []
@@ -51,15 +160,29 @@ for line in file:
         testLabels.append(1)
     else:
         raise ValueError('Improper Data Format')
+    for i in range(len(data)):
+        try:
+            data[i] = int(data[i])
+        except:
+            # We don't want to do anything if it can't cast - silently catch and move on.
+            pass
     testData.append(data)
 file.close()
+testLabels = np.array(testLabels)
 ############################################
 
 '''
+################ Encoding ##################
+encoder = CategoricalEncoder()
+encodedData = encoder.fit_transform(censusData, labels)
+print(encodedData)
+############################################
+
+
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
 #undersampled = un.RepeatedEditedNearestNeighbours()
-usTrain, usLabels = undersampled.fit_sample(kbestTrain, labels)
+usTrain, usLabels = undersampled.fit_sample(censusData, labels)
 usTrain = scp.csr_matrix(usTrain)
 ############################################
 '''
