@@ -1,31 +1,4 @@
-import sklearn shit there
-
-"""
-Reads in the baseline census training data, and the census test data.
-These values are stored into 2D lists of the form:
-[['v1', 'v2', 'v3', 'v4', ...], [...]],
-Where the inner lists represents each of the different census candidates.
-"""
-file = open('../data/adult.data', 'r')
-censusData = []
-for line in file:
-    data = line.split()
-    data.pop(2)
-    data.pop(2)
-    censusData.append(data)
-file.close()
-
-file = open('../data/adult.test', 'r')
-testData = []
-for line in file:
-    data = line.split()
-    data.pop(2)
-    data.pop(2)
-    censusData.append(data)
-file.close()
-
-'''HW2 Below
-
+'''
 import scipy.sparse as scp
 import numpy as np
 import imblearn.under_sampling as un
@@ -35,8 +8,42 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from mlxtend.preprocessing import shuffle_arrays_unison
 from sklearn.model_selection import cross_val_score
+'''
+############## Data Preprocessing ###############
+"""
+Reads in the baseline census training data, and the census test data.
+These values are stored into 2D lists of the form:
+[['v1', 'v2', 'v3', 'v4', ...], [...]],
+Where the inner lists represents each of the different census candidates.
+"""
+file = open('../data/adult.data', 'r')
+censusData = []
+for line in file:
+    data = line.replace(',', '').split()
+    data.pop(2)
+    data.pop(2)
+    censusData.append(data)
+file.close()
 
-
+file = open('../data/adult.test', 'r')
+testData = []
+for line in file:
+    data = line.replace(',', '').split()
+    data.pop(2)
+    data.pop(2)
+    testData.append(data)
+file.close()
+############################################
+'''
+############## Undersampling ###############
+undersampled = un.EditedNearestNeighbours()
+#undersampled = un.RepeatedEditedNearestNeighbours()
+usTrain, usLabels = undersampled.fit_sample(kbestTrain, labels)
+usTrain = scp.csr_matrix(usTrain)
+############################################
+'''
+###HW2 Below###
+'''
 # Create a Sparse Matrix from a list
 def CreateSparseMatrix(drugs):
     ones = []
@@ -86,22 +93,6 @@ def main():
 	############################################
 
 
-	########### Select Best Features ###########
-	# *** Similar to setting up & fitting the vectorizer from HW1
-	kbest = SelectKBest(score_func=chi2, k=k_features)
-	kbestTrain = kbest.fit_transform(sparseTrain.toarray(), labels)
-	kbestTest = kbest.transform(sparseTest.toarray())
-	############################################
-
-
-	############## Undersampling ###############
-	undersampled = un.EditedNearestNeighbours()
-	#undersampled = un.RepeatedEditedNearestNeighbours()
-	usTrain, usLabels = undersampled.fit_sample(kbestTrain, labels)
-	usTrain = scp.csr_matrix(usTrain)
-	############################################
-
-
 	############### Classifiers ################
 	# KNN
 	#clf = KNeighborsClassifier(n_neighbors=kneighbors)
@@ -116,7 +107,7 @@ def main():
 	results = clf.predict(kbestTest)
 	############################################
 
-	
+
 	############# Cross-Validation #############
 	randomTrain, randomLabels = shuffle_arrays_unison(arrays=[kbestTrain, labels])
 	CVScores = cross_val_score(clf, randomTrain, randomLabels, scoring = 'f1', cv = 10)
