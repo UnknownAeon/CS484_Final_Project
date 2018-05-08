@@ -143,20 +143,21 @@ for line in file:
             # We don't want to do anything if it can't cast - silently catch and move on.
             pass
     censusData.append(data)
+print(censusData[0:2])
+print(censusData[-1])
 file.close()
 labels = np.array(labels)
-print(censusData)
 
 file = open('../data/adult.test', 'r')
 testData = []
 testLabels = []
 for line in file:
-    data = line.replace(',', '').split()
+    data = line.replace(',', '').replace('.', '').split()
     data.pop(2)
     data.pop(2)
-    if (data[len(data) - 1] == '<=50K.'):
+    if (data[len(data) - 1] == '<=50K'):
         testLabels.append(0)
-    elif (data[len(data) - 1] == '>50K.'):
+    elif (data[len(data) - 1] == '>50K'):
         testLabels.append(1)
     else:
         raise ValueError('Improper Data Format')
@@ -171,14 +172,17 @@ file.close()
 testLabels = np.array(testLabels)
 ############################################
 
-'''
+
 ################ Encoding ##################
-encoder = CategoricalEncoder()
+encoder = CategoricalEncoder('ordinal')
 encodedData = encoder.fit_transform(censusData, labels)
+encodedTest = encoder.fit_transform(testData)
 print(encodedData)
+print(encodedTest)
+# print(encoder.inverse_transform(encodedData))
 ############################################
 
-
+'''
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
 #undersampled = un.RepeatedEditedNearestNeighbours()
