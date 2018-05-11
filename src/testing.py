@@ -8,11 +8,9 @@ so that we can implement the logic within our own code.
 import os
 import numpy as np
 import pandas as pd
-
 #get_ipython().run_line_magic('matplotlib', 'inline')
 pd.set_option("max_rows", 10)
 np.set_printoptions(suppress=True)
-
 
 # Pretty Graphs
 from seaborn import set_style
@@ -20,191 +18,146 @@ set_style("darkgrid")
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
 # About the Data
 with open("../data/adult.names") as fin:
     notes = fin.read()
+#print(notes) # The info on the datasets themselves
 
-#print(notes)
 
-# # Pandas for Data Wrangling
-
-# ## Reading Data
-
+##### Reading Data with Pandas #####
 dta = pd.read_csv("../data/adult.data.cleaned.csv.gz", compression="gzip")
-
 test = pd.read_csv("../data/adult.test.cleaned.csv.gz", compression="gzip")
 
-# ## Explore the Data
-
-print(dta.head())
-
-print(dta.info())
-
-print(dta.describe())
-
-# ## Pandas Orientation
-
-# ### Indices
-
-# #### Index
-
-dta.index
+##### General Info about Data #####
+#print(dta.head()) #Print first 5 rows
+#print(dta.info()) # Info about the dataframe object itself
+#print(dta.describe()) # Statistical info about attributes in the dataframe
+#print(dta.columns) # All the possible Columns (attributes)
+#print(dta.columns.difference(test.columns)) #To make sure both datasets have the same attributes as they should
+#print(dta.loc[[5, 10, 15]]) # Print out the rows at the specified indexes
+#print(dta[["workclass", "education"]]) # Print out the specified columns
+#print(dta.loc[[5, 10, 15], ["workclass", "education"]]) # Combining both above to get specified columns and rows
 
 
-# #### Columns
+##### GroupBy Operations #####
+print(dta.groupby("income").education.describe()) # Statistical info on categories
 
-dta.columns
-
-dta.columns.difference(test.columns)
-
-# Sanity checks
-
-dta.columns.equals(test.columns)
-
-dta.columns.difference(test.columns)
-
-# #### Indexing
-
-dta.loc[[5, 10, 15]]
-
-# #### Selecting Columns
-
-dta[["workclass", "education"]]
-
-type(dta[["workclass"]])
-
-type(dta["workclass"])
-'''
-# #### Rows and Columns
-
-dta.loc[[5, 10, 15], ["workclass", "education"]]
-
-# ## GroupBy Operations
-
-dta.groupby("income").education.describe()
-
-grouper = dta.groupby("education")
-
-grouper
-
+### Prints out a map going down education <--> education number ###
+grouper = dta.groupby("education") # Grouper = pandas.core.groupby.DataFrameGroupBy object
 education_map = grouper.education_num.unique()
 education_map.sort_values(inplace=True)
-
 with pd.option_context("max_rows", 20):
     print(education_map)
 
+'''Dunno what this was
 grouper.education_num.apply(lambda x : x.unique()[0])
 education_map.sort_values(inplace=True)
 
 with pd.option_context("max_rows", 20):
     print(education_map)
+'''
 
-# ## Plotting
 
+##### Plotting #####
+##### This block will give us a bar graph of the education spread (# of people per education)
 ax = dta.groupby("education").size().plot(kind="bar", figsize=(8, 8))
-
 ax.set_yticklabels([])  # turn off y tick labels
-
 # resize x label
 xlabel = ax.xaxis.get_label()
 xlabel.set_fontsize(24)
-
 # resize x tick labels
 labels = ax.xaxis.get_ticklabels()
 [label.set_fontsize(20) for label in labels];
 
-# ### Seaborn
 
+##### Seaborn #####
 import seaborn as sns
+g = sns.factorplot("education_num", "hours_per_week", hue="sex", col="income", data=dta) # Plot relating education number and hours per week worked
 
-g = sns.factorplot("education_num", "hours_per_week", hue="sex", col="income", data=dta)
 
-# ### Deleting Columns
-
+##### Deleting Columns we aren't using #####
 del dta["education"]
 del dta["fnlwgt"]
 del test["education"]
 del test["fnlwgt"]
 
-# ### Advanced Indexing
-
-# #### Indexing with Booleans
-
+'''This is weird probably won't be useful or used
+##### Indexing with Booleans #####
 dta.education_num <= 8
-
 dta.ix[dta.education_num <= 8, "education_num"]
-
-# #### .iloc vs .loc
-
+### .iloc vs .loc
 dta.ix[dta.education_num <= 8, "education_num"].iloc[0]
-
 dta.ix[dta.education_num <= 8, "education_num"].loc[3]
+'''
 
-# #### Slicing with labels (!)
 
-dta.groupby("workclass").age.mean()
+##### Slicing with labels #####
+print(dta.groupby("workclass").age.mean())
+'''Prints out:
+    workclass
+    ?                   40.960240
+    Federal-gov         42.590625
+    Local-gov           41.751075
+    Never-worked        20.571429
+    Private             36.797585
+    Self-emp-inc        46.017025
+    Self-emp-not-inc    44.969697
+    State-gov           39.436055
+    Without-pay         47.785714
+    Name: age, dtype: float64
+'''
+print(dta.groupby("workclass").age.mean().loc["Federal-gov":"Private"])
+'''Prints out:
+    workclass
+    Federal-gov     42.590625
+    Local-gov       41.751075
+    Never-worked    20.571429
+    Private         36.797585
+    Name: age, dtype: float64
+'''
 
-dta.groupby("workclass").age.mean().loc["Federal-gov":"Private"]
 
-# #### Filtering Columns with Regex
-
-dta.filter(regex="capital")
-
-# ### Working with Categorical Data
-
-# #### Categorical Object
-
+##### Working with Categorical Data #####
 cat = pd.Categorical(dta.workclass)
-cat.describe()
+print(cat.describe()) # Gives counts and frequencies
+print(cat) #Prints categories...or each rows value for specified category?
+print(cat.categories) #
+print(cat.codes) #
 
-cat
 
-cat.categories
+##### Vectorized string operations #####
+#print(dta.workclass.str.contains("\?"))
+##### Putting it together: Strings and Boolean Indexing #####
+print(dta.ix[dta.workclass.str.contains("\?"), "workclass"]) # Prints out the rows that contain ? in the workclass
 
-cat.codes
 
-# #### Vectorized string operations
-
-dta.workclass.str.contains("\?")
-
-# #### Putting it together: Strings and Boolean Indexing
-
-dta.ix[dta.workclass.str.contains("\?"), "workclass"]
-
-# #### Putting it together: Column Assignment
-
-dta.workclass.unique()
-
+##### Putting it together: Column Assignment #####
+#print(dta.workclass.unique()) # All the Unique columns/attributes
+### This block of code I believe changes all ?'s to 'Other' throughout the data for every column! ###
 for col in dta:  # iterate through column names
     # only look at object types
     if not dta[col].dtype.kind == "O":
         continue
-
     # Replace "?" with "Other"
     if dta[col].str.contains("\?").any():
         dta.loc[dta[col].str.contains("\?"), col] = "Other"
         test.loc[test[col].str.contains("\?"), col] = "Other"
+#print(dta.workclass.unique()) # All the Unique columns/attributes after the replacement
 
-dta.workclass.unique()
 
-# #### Replacing values using dictionaries
-
-dta.income
-
+##### Replacing values using dictionaries #####
+print(dta.income)
 dta.income.replace({"<=50K": 0, ">50K": 1})
-
 # In-place changes
-
 dta.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
-
 test.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
+print(dta.income.mean())
+print(test.income.mean())
 
-dta.income.mean()
 
-test.income.mean()
 
-# # Classification with Scikit-Learn
-
+########## Classification with Scikit-Learn ##########
 # ## Scikit-Learn API
 #
 # * Base object is the estimator
@@ -212,72 +165,50 @@ test.income.mean()
 #   * Classification, regression, clustering, or transformer
 #
 # * parameters passed to estimator
-#
-# ```python
 #     estimator = Estimator(*args, **kwargs)
-# ```
 #
-# * `fit` method provided
-#
-# ```python
+# * fit method provided
 #     estimator.fit(X, y)
-# ```
 #
 # * Computed parameters have an underscore appended
-#
-# ```python
 #     estimator.coef_
-# ```
 
-# ## Preparing the Data
 
+########## Preparing the Data ##########
 # * scikit-learn works with numerical data
-
+# THESE Y VALUES ARE USED LATER FOR THE CLASSIFIERS
 y = dta.pop("income")
 y_test = test.pop("income")
 
-dta.info()
-
-# ## Preprocessing
-
+########## Preprocessing ##########
 # * Preprocessing for Text, Categorical variables, Standardization etc.
-
 from sklearn.preprocessing import LabelBinarizer
+print(dta.native_country.head(15).values) # Looking at the first 15 rows, print their respective native_country values in an array
 
-dta.native_country.head(15).values
 
+### Binary Stuff ###
 binarizer = LabelBinarizer()
+binarizer.fit_transform(dta.native_country.head(15)) # Prints binary double array
+print(binarizer.classes_) # Prints array for the options above
+# Example: If the classes were: ['Cuba', 'India', 'Jamaica', 'Other', 'United-States'], and row 1 was Other, then it'd be [[0, 0, 0, 1, 0],...]
 
-# `fit_transform` is short hand for calling `fit` then `transform`
 
-binarizer.fit_transform(dta.native_country.head(15))
-
-binarizer.classes_
-
-# Pre-processing with pandas
-
+##### Pre-processing with pandas #####
 X_train = pd.get_dummies(dta)
-
 X_test = pd.get_dummies(test)
 
-# Deal with real life
 
-X_train.columns.equals(X_test.columns)
-
-print(X_train.shape)
-print(X_test.shape)
-
-X_train.columns.difference(X_test.columns)
-
-X_test[X_train.columns.difference(X_test.columns)[0]] = 0
-
+##### Deal with real life #####
+print(X_train.columns.equals(X_test.columns)) # WILL BE FALSE
+print(X_train.shape) #(32561, 91)
+print(X_test.shape) #(16281, 90)
+print(X_train.columns.difference(X_test.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
+print(X_test[X_train.columns.difference(X_test.columns)[0]])= 0 # ?
 # Preserve order
-
 X_test = X_test[X_train.columns]
 
+
 # ## Reported Benchmarks
-#
-# ```
 # |    Algorithm               Error
 # | -- ----------------        -----
 # | 1  C4.5                    15.54
@@ -298,51 +229,47 @@ X_test = X_test[X_train.columns]
 # | 16 OC1                     15.04
 # ```
 
-# ## Classification and Regression Trees (CART)
+##### Classification and Regression Trees (CART) #####
 #
 # * Partition feature space into a set of rectangles via splits that lead to largest information gain
 # * Fit simple model in each region (e.g., a constant)
 # * Captures non-linearities and feature interactions
 # * Note: not strictly necessary to dummy encode variables
-
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 
 dtree = DecisionTreeClassifier(random_state=0, max_depth=2)
-
 dtree.fit(X_train, y)
-
 export_graphviz(dtree, feature_names=X_train.columns, out_file="tree.dot")
 
+### Run this if you have graphviz installed ###
+#dot -Tpng tree.dot -o tree.png
+
 from IPython.display import Image
-Image("tree.png", unconfined=True)
+#I think the below syntax will still need to be changed to work with python instead of the IPython Notebook
+Image("tree.png", unconfined=True) # Displays the tree picture built above
 
 # Fit the full tree and look at the error
-
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
 dtree.fit(X_train, y)
-
 # Performs slightly worse than C4.5 with no pruning
-
 from sklearn import metrics
-
-metrics.mean_absolute_error(y_test, dtree.predict(X_test))
+print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.1768318899330508
 
 # Beware overfitting!
-
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0, max_depth=10)
 dtree.fit(X_train, y)
-metrics.mean_absolute_error(y_test, dtree.predict(X_test))
+print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.13899637614397151
 
-# ## Aside: Saving Models
 
+
+##### Aside: Saving Models #####
 # * All of the scikit-learn models are picklable
 # * Using joblib directly is often preferable to using pickle
-
 import joblib
 
-# ## Ensemble Methods
-
-# ### Boosting
+##### Ensemble Methods ##### NOT SURE IF WE WANT TO INTO ENSEMBLES FOR THIS
+'''
+#### Boosting
 #
 # * Combine many weak classifiers in to one strong one
 #   * Weak classifier is slightly better than random
@@ -458,22 +385,26 @@ else:
     rf_full = joblib.load("models/rf_full.pkl")
 
 metrics.mean_absolute_error(y_test, rf_full.predict(X_test))
+'''
 
-# ## Validation Methods
+##### Validation Methods #####
 
-# ### Cross-Validation
-#
+##### Cross-Validation #####
 # * Sampling techniques to ensure low generalization error and avoid overfitting
 
 from sklearn.cross_validation import StratifiedKFold
-
 cv = StratifiedKFold([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                       0, 0, 0, 0, 0, 0,], n_folds=3)
 for idx in cv:
     print("train", idx[0], "test", idx[1])
+''' Prints out:
+train [ 4  5  6  7  8  9 10 13 14 15 16] test [ 0  1  2  3 11 12]
+train [ 0  1  2  3  8  9 10 11 12 15 16] test [ 4  5  6  7 13 14]
+train [ 0  1  2  3  4  5  6  7 11 12 13 14] test [ 8  9 10 15 16]
+'''
 
+### Don't really know what this is yet
 from sklearn.grid_search import GridSearchCV
-
 cv = StratifiedKFold(y, n_folds=4)
 
 params = {"max_depth": [3, 5, 7]}
@@ -485,22 +416,43 @@ if not os.path.exists("models/grid_search.pkl"):
     joblib.dump(estimator, "models/grid_search.pkl")
 else:
     estimator = joblib.load("models/grid_search.pkl")
+''' Prints out (somehow? might need syntax update from IPython Notebook):
+Fitting 3 folds for each of 3 candidates, totalling 9 fits
+[CV] max_depth=3 .....................................................
+[CV] ............................................ max_depth=3 - 1.0min
+[CV] max_depth=3 .....................................................
+[CV] ............................................ max_depth=3 -  51.1s
+[CV] max_depth=3 .....................................................
+[CV] ............................................ max_depth=3 -  51.0s
+[CV] max_depth=5 .....................................................
+[CV] ............................................ max_depth=5 - 2.0min
+[CV] max_depth=5 .....................................................
+[CV] ............................................ max_depth=5 - 1.8min
+[CV] max_depth=5 .....................................................
+[CV] ............................................ max_depth=5 - 1.9min
+[CV] max_depth=7 .....................................................
+[CV] ............................................ max_depth=7 - 3.2min
+[CV] max_depth=7 .....................................................
+[CV] ............................................ max_depth=7 - 3.1min
+[CV] max_depth=7 .....................................................
+[CV] ............................................ max_depth=7 - 3.2min
+[Parallel(n_jobs=1)]: Done   1 jobs       | elapsed:  1.0min
+[Parallel(n_jobs=1)]: Done   9 out of   9 | elapsed: 17.8min finished
+'''
 
-# ### Out-of-bag estimates and Early-stopping
 
+##### Out-of-bag estimates and Early-stopping #####
 gbt = GradientBoostingClassifier(learning_rate=.01, n_estimators=1000, subsample=.5)
-
 gbt.fit(X_train, y)
-
-metrics.mean_absolute_error(y_test, gbt.predict(X_test))
+print(metrics.mean_absolute_error(y_test, gbt.predict(X_test))) # 0.13045881702598117
 
 fig, ax = plt.subplots(figsize=(10, 10))
-ax.plot(gbt.oob_improvement_)
+ax.plot(gbt.oob_improvement_) # Prints big interpolating graph, declines and then plataeus, Y range 0 to .0075, X range 0 to 1000
 
+
+### Not sure what this is or is for... ###
 from sklearn.ensemble import GradientBoostingClassifier
-
 # Ad-hoc way to do early-stopping
-
 def monitor(i, self, local_variables):
     start = max(0, i - 4)
     stop = i + 1
@@ -508,13 +460,11 @@ def monitor(i, self, local_variables):
     if i > 5 and np.mean(self.oob_improvement_[start:stop]) < 1e-4:
         print("Stopped at {}".format(i))
         return True
-
 gbt.fit(X_train, y, monitor=monitor)
-
 print(len(gbt.oob_improvement_))
 
-# ## Custom Transformers
 
+##### Custom Transformers #####
 def get_obj_cols(dta, index=False):
     """
     dta : pd.DataFrame
@@ -535,11 +485,10 @@ obj_cols = get_obj_cols(dta)
 for col in obj_cols:
     print(col)
 
-# Make a transformer that reliably transforms DataFrames and Arrays
 
+# This might be useful if we somehow run into issues about DataFrames vs arrays, otherwise don't know why we'd need it
+##### Make a transformer that reliably transforms DataFrames and Arrays #####
 from sklearn.base import TransformerMixin, BaseEstimator
-
-
 class PandasTransformer(TransformerMixin, BaseEstimator):
     def __init__(self, dataframe):
         self.columns = dataframe.columns
@@ -547,7 +496,6 @@ class PandasTransformer(TransformerMixin, BaseEstimator):
         obj_index = np.zeros(dataframe.shape[1], dtype=bool)
         obj_index[self.obj_columns] = True
         self.obj_index = obj_index
-
 
     def fit(self, X, y=None):
         X = np.asarray(X)
@@ -577,19 +525,14 @@ class PandasTransformer(TransformerMixin, BaseEstimator):
 
         return X
 
-# ## Pipelines
 
+##### Pipelines #####
 # * Often it makes sense to do the data transformation, feature extraction, etc. as part of a Pipeline
 # * Pipelines are flexible and provide the same sklearn API
-
 from sklearn.pipeline import Pipeline
-
 dtree_estimator = Pipeline([('transformer', PandasTransformer(dta)),
                             ('dtree', dtree)])
-
 dtree_estimator.fit(dta, y)
-
-dtree_estimator.named_steps['dtree']
-
-dtree_estimator.predict_proba(test)
+print(dtree_estimator.named_steps['dtree'])
+dtree_estimator.predict_proba(test) # Not sure what this prints yet
 '''
