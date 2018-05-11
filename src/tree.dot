@@ -1,0 +1,16 @@
+digraph Tree {
+node [shape=box] ;
+0 [label="marital_status_Married-civ-spouse <= 0.5\ngini = 0.366\nsamples = 32561\nvalue = [24720, 7841]"] ;
+1 [label="capital_gain <= 7073.5\ngini = 0.122\nsamples = 17585\nvalue = [16436, 1149]"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="gini = 0.093\nsamples = 17274\nvalue = [16425, 849]"] ;
+1 -> 2 ;
+3 [label="gini = 0.068\nsamples = 311\nvalue = [11, 300]"] ;
+1 -> 3 ;
+4 [label="education_num <= 12.5\ngini = 0.494\nsamples = 14976\nvalue = [8284, 6692]"] ;
+0 -> 4 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+5 [label="gini = 0.443\nsamples = 10507\nvalue = [7029, 3478]"] ;
+4 -> 5 ;
+6 [label="gini = 0.404\nsamples = 4469\nvalue = [1255, 3214]"] ;
+4 -> 6 ;
+}

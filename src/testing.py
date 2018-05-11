@@ -41,14 +41,16 @@ test = pd.read_csv("../data/adult.test.cleaned.csv.gz", compression="gzip")
 
 
 ##### GroupBy Operations #####
-print(dta.groupby("income").education.describe()) # Statistical info on categories
+#print(dta.groupby("income").education.describe()) # Statistical info on categories
 
 ### Prints out a map going down education <--> education number ###
+'''
 grouper = dta.groupby("education") # Grouper = pandas.core.groupby.DataFrameGroupBy object
 education_map = grouper.education_num.unique()
 education_map.sort_values(inplace=True)
 with pd.option_context("max_rows", 20):
     print(education_map)
+'''
 
 '''Dunno what this was
 grouper.education_num.apply(lambda x : x.unique()[0])
@@ -93,7 +95,7 @@ dta.ix[dta.education_num <= 8, "education_num"].loc[3]
 
 
 ##### Slicing with labels #####
-print(dta.groupby("workclass").age.mean())
+#print(dta.groupby("workclass").age.mean())
 '''Prints out:
     workclass
     ?                   40.960240
@@ -107,7 +109,7 @@ print(dta.groupby("workclass").age.mean())
     Without-pay         47.785714
     Name: age, dtype: float64
 '''
-print(dta.groupby("workclass").age.mean().loc["Federal-gov":"Private"])
+#print(dta.groupby("workclass").age.mean().loc["Federal-gov":"Private"])
 '''Prints out:
     workclass
     Federal-gov     42.590625
@@ -120,16 +122,30 @@ print(dta.groupby("workclass").age.mean().loc["Federal-gov":"Private"])
 
 ##### Working with Categorical Data #####
 cat = pd.Categorical(dta.workclass)
-print(cat.describe()) # Gives counts and frequencies
-print(cat) #Prints categories...or each rows value for specified category?
-print(cat.categories) #
-print(cat.codes) #
+#print(cat.describe()) # Gives counts and frequencies
+#print(cat)
+''' Prints out:
+    [State-gov, Self-emp-not-inc, Private, Private, Private, ..., Private, Private, Private, Private, Self-emp-inc]
+    Length: 32561
+    Categories (9, object): [?, Federal-gov, Local-gov, Never-worked, ..., Self-emp-inc,
+                            Self-emp-not-inc, State-gov, Without-pay]
+'''
+#print(cat.categories)
+''' Prints out:
+    Index(['?', 'Federal-gov', 'Local-gov', 'Never-worked', 'Private',
+           'Self-emp-inc', 'Self-emp-not-inc', 'State-gov', 'Without-pay'],
+          dtype='object')
+'''
+#print(cat.codes)
+''' Prints out:
+    [7 6 4 ... 4 4 5]
+'''
 
 
 ##### Vectorized string operations #####
-#print(dta.workclass.str.contains("\?"))
+#print(dta.workclass.str.contains("\?")) # Prints out whether the rows contain ? in the workclass
 ##### Putting it together: Strings and Boolean Indexing #####
-print(dta.ix[dta.workclass.str.contains("\?"), "workclass"]) # Prints out the rows that contain ? in the workclass
+#print(dta.ix[dta.workclass.str.contains("\?"), "workclass"]) # Prints out the rows that contain ? in the workclass
 
 
 ##### Putting it together: Column Assignment #####
@@ -147,13 +163,13 @@ for col in dta:  # iterate through column names
 
 
 ##### Replacing values using dictionaries #####
-print(dta.income)
+#print(dta.income)
 dta.income.replace({"<=50K": 0, ">50K": 1})
 # In-place changes
 dta.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
 test.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
-print(dta.income.mean())
-print(test.income.mean())
+#print(dta.income.mean()) # 0.2408095574460244
+#print(test.income.mean()) # 0.23622627602727106
 
 
 
@@ -183,13 +199,13 @@ y_test = test.pop("income")
 ########## Preprocessing ##########
 # * Preprocessing for Text, Categorical variables, Standardization etc.
 from sklearn.preprocessing import LabelBinarizer
-print(dta.native_country.head(15).values) # Looking at the first 15 rows, print their respective native_country values in an array
+#print(dta.native_country.head(15).values) # Looking at the first 15 rows, print their respective native_country values in an array
 
 
 ### Binary Stuff ###
 binarizer = LabelBinarizer()
-binarizer.fit_transform(dta.native_country.head(15)) # Prints binary double array
-print(binarizer.classes_) # Prints array for the options above
+binarizer.fit_transform(dta.native_country.head(15)) # Makes binary double array
+#print(binarizer.classes_) # Prints array for the options above
 # Example: If the classes were: ['Cuba', 'India', 'Jamaica', 'Other', 'United-States'], and row 1 was Other, then it'd be [[0, 0, 0, 1, 0],...]
 
 
@@ -199,11 +215,11 @@ X_test = pd.get_dummies(test)
 
 
 ##### Deal with real life #####
-print(X_train.columns.equals(X_test.columns)) # WILL BE FALSE
-print(X_train.shape) #(32561, 91)
-print(X_test.shape) #(16281, 90)
-print(X_train.columns.difference(X_test.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
-print(X_test[X_train.columns.difference(X_test.columns)[0]])= 0 # ?
+#print(X_train.columns.equals(X_test.columns)) # WILL BE FALSE
+#print(X_train.shape) #(32561, 91)
+#print(X_test.shape) #(16281, 90)
+#print(X_train.columns.difference(X_test.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
+X_test[X_train.columns.difference(X_test.columns)[0]]= 0 # ?
 # Preserve order
 X_test = X_test[X_train.columns]
 
@@ -253,12 +269,12 @@ dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
 dtree.fit(X_train, y)
 # Performs slightly worse than C4.5 with no pruning
 from sklearn import metrics
-print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.1768318899330508
+#print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.1768318899330508
 
 # Beware overfitting!
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0, max_depth=10)
 dtree.fit(X_train, y)
-print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.13899637614397151
+#print(metrics.mean_absolute_error(y_test, dtree.predict(X_test))) # 0.13899637614397151
 
 
 
@@ -316,13 +332,13 @@ ax[3].plot(XX, resid2, marker='o', ls='')
 ax[3].plot(XX, y3)
 fig.suptitle("Residual Fitting", fontsize=24);
 fig.tight_layout()
-
+'''
 # ### Gradient Boosting
 #
 # * Generalizes boosting to any differentiable loss function
 
 from sklearn.ensemble import GradientBoostingClassifier
-
+'''
 if not os.path.exists("models/gbt1.pkl"):
     gbt = GradientBoostingClassifier(max_depth=5, n_estimators=1000)
     gbt.fit(X_train, y)
@@ -391,12 +407,12 @@ metrics.mean_absolute_error(y_test, rf_full.predict(X_test))
 
 ##### Cross-Validation #####
 # * Sampling techniques to ensure low generalization error and avoid overfitting
-
+#****************Needs to be updated
 from sklearn.cross_validation import StratifiedKFold
 cv = StratifiedKFold([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                       0, 0, 0, 0, 0, 0,], n_folds=3)
-for idx in cv:
-    print("train", idx[0], "test", idx[1])
+#for idx in cv:
+#    print("train", idx[0], "test", idx[1])
 ''' Prints out:
 train [ 4  5  6  7  8  9 10 13 14 15 16] test [ 0  1  2  3 11 12]
 train [ 0  1  2  3  8  9 10 11 12 15 16] test [ 4  5  6  7 13 14]
@@ -405,46 +421,47 @@ train [ 0  1  2  3  4  5  6  7 11 12 13 14] test [ 8  9 10 15 16]
 
 ### Don't really know what this is yet
 from sklearn.grid_search import GridSearchCV
+#****************Needs to be updated
 cv = StratifiedKFold(y, n_folds=4)
 
-params = {"max_depth": [3, 5, 7]}
-gbt = GradientBoostingClassifier(n_estimators=500, learning_rate=.01)
+#params = {"max_depth": [3, 5, 7]}
+#gbt = GradientBoostingClassifier(n_estimators=500, learning_rate=.01)
 
-if not os.path.exists("models/grid_search.pkl"):
-    estimator = GridSearchCV(gbt, param_grid=params, verbose=2)
-    estimator.fit(X_train, y)
-    joblib.dump(estimator, "models/grid_search.pkl")
-else:
-    estimator = joblib.load("models/grid_search.pkl")
-''' Prints out (somehow? might need syntax update from IPython Notebook):
+#if not os.path.exists("models/grid_search.pkl"):
+#    estimator = GridSearchCV(gbt, param_grid=params, verbose=2)
+#    estimator.fit(X_train, y)
+#    joblib.dump(estimator, "models/grid_search.pkl")
+#else:
+#    estimator = joblib.load("models/grid_search.pkl")
+''' Prints out:
 Fitting 3 folds for each of 3 candidates, totalling 9 fits
 [CV] max_depth=3 .....................................................
-[CV] ............................................ max_depth=3 - 1.0min
+[CV] ............................................ max_depth=3 -  34.3s
+[Parallel(n_jobs=1)]: Done   1 out of   1 | elapsed:   34.3s remaining:    0.0s
 [CV] max_depth=3 .....................................................
-[CV] ............................................ max_depth=3 -  51.1s
+[CV] ............................................ max_depth=3 -  33.9s
 [CV] max_depth=3 .....................................................
-[CV] ............................................ max_depth=3 -  51.0s
+[CV] ............................................ max_depth=3 -  34.4s
 [CV] max_depth=5 .....................................................
-[CV] ............................................ max_depth=5 - 2.0min
+[CV] ............................................ max_depth=5 - 1.4min
 [CV] max_depth=5 .....................................................
-[CV] ............................................ max_depth=5 - 1.8min
+[CV] ............................................ max_depth=5 - 1.4min
 [CV] max_depth=5 .....................................................
-[CV] ............................................ max_depth=5 - 1.9min
+[CV] ............................................ max_depth=5 - 1.4min
 [CV] max_depth=7 .....................................................
-[CV] ............................................ max_depth=7 - 3.2min
+[CV] ............................................ max_depth=7 - 2.9min
+[CV] max_depth=7 .....................................................
+[CV] ............................................ max_depth=7 - 2.9min
 [CV] max_depth=7 .....................................................
 [CV] ............................................ max_depth=7 - 3.1min
-[CV] max_depth=7 .....................................................
-[CV] ............................................ max_depth=7 - 3.2min
-[Parallel(n_jobs=1)]: Done   1 jobs       | elapsed:  1.0min
-[Parallel(n_jobs=1)]: Done   9 out of   9 | elapsed: 17.8min finished
+[Parallel(n_jobs=1)]: Done   9 out of   9 | elapsed: 14.9min finished
 '''
 
 
 ##### Out-of-bag estimates and Early-stopping #####
 gbt = GradientBoostingClassifier(learning_rate=.01, n_estimators=1000, subsample=.5)
 gbt.fit(X_train, y)
-print(metrics.mean_absolute_error(y_test, gbt.predict(X_test))) # 0.13045881702598117
+#print(metrics.mean_absolute_error(y_test, gbt.predict(X_test))) # 0.13045881702598117 Mine got: 0.12984460413979484?
 
 fig, ax = plt.subplots(figsize=(10, 10))
 ax.plot(gbt.oob_improvement_) # Prints big interpolating graph, declines and then plataeus, Y range 0 to .0075, X range 0 to 1000
@@ -458,10 +475,10 @@ def monitor(i, self, local_variables):
     stop = i + 1
 
     if i > 5 and np.mean(self.oob_improvement_[start:stop]) < 1e-4:
-        print("Stopped at {}".format(i))
+        #print("Stopped at {}".format(i)) # Stopped at 446
         return True
 gbt.fit(X_train, y, monitor=monitor)
-print(len(gbt.oob_improvement_))
+#print(len(gbt.oob_improvement_)) # 447
 
 
 ##### Custom Transformers #####
@@ -482,9 +499,17 @@ def get_obj_cols(dta, index=False):
 
 obj_cols = get_obj_cols(dta)
 
-for col in obj_cols:
-    print(col)
-
+#for col in obj_cols:
+    #print(col)
+''' Prints:
+workclass
+marital_status
+occupation
+relationship
+race
+sex
+native_country
+'''
 
 # This might be useful if we somehow run into issues about DataFrames vs arrays, otherwise don't know why we'd need it
 ##### Make a transformer that reliably transforms DataFrames and Arrays #####
@@ -533,6 +558,13 @@ from sklearn.pipeline import Pipeline
 dtree_estimator = Pipeline([('transformer', PandasTransformer(dta)),
                             ('dtree', dtree)])
 dtree_estimator.fit(dta, y)
-print(dtree_estimator.named_steps['dtree'])
-dtree_estimator.predict_proba(test) # Not sure what this prints yet
+#print(dtree_estimator.named_steps['dtree'])
+''' Prints:
+DecisionTreeClassifier(class_weight=None, criterion='entropy', max_depth=10,
+            max_features=None, max_leaf_nodes=None,
+            min_impurity_decrease=0.0, min_impurity_split=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, presort=False, random_state=0,
+            splitter='best')
 '''
+dtree_estimator.predict_proba(test) # Not sure what this prints yet
