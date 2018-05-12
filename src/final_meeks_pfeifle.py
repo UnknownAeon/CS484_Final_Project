@@ -6,8 +6,10 @@ Final Project - Census Data Classification
 import scipy.sparse as scp
 import numpy as np
 import imblearn.under_sampling as un
+import pandas as pan
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.preprocessing import CategoricalEncoder
+from sklearn.preprocessing import LabelBinarizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
@@ -124,6 +126,23 @@ Native Country:
     41. Holand-Netherlands
 
 """
+
+censusData = pan.read_csv("../data/adult.data.cleaned.csv")
+testData = pan.read_csv("../data/adult.test.cleaned.csv")
+del censusData["education"]
+del censusData["fnlwgt"]
+del testData["education"]
+del testData["fnlwgt"]
+censusData.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
+testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
+print(censusData.loc[[5, 10, 15]])
+print(testData.loc[[5, 10, 15]])
+
+# Trying to figure out the binarizer still..
+# binarizer = LabelBinarizer()
+# binarizer.fit_transform(dta.native_country.head(15)) # Makes binary double array
+
+"""
 file = open('../data/adult.data', 'r')
 censusData = []
 labels = []
@@ -182,7 +201,7 @@ print(encodedData)
 print(encodedTest)
 # print(encoder.inverse_transform(encodedData))
 ############################################
-
+"""
 '''
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
