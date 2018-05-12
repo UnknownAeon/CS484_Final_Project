@@ -43,7 +43,7 @@ test = pd.read_csv("../data/adult.test.cleaned.csv.gz", compression="gzip")
 ##### GroupBy Operations #####
 #print(dta.groupby("income").education.describe()) # Statistical info on categories
 
-### Prints out a map going down education <--> education number ###
+### Prints out a map going down education <--> education number ### MIGHT BE HELPFUL
 '''
 grouper = dta.groupby("education") # Grouper = pandas.core.groupby.DataFrameGroupBy object
 education_map = grouper.education_num.unique()
@@ -71,6 +71,7 @@ xlabel.set_fontsize(24)
 # resize x tick labels
 labels = ax.xaxis.get_ticklabels()
 [label.set_fontsize(20) for label in labels];
+#NEED TO PRINT AX PLOT STILL
 
 
 ##### Seaborn #####
@@ -409,6 +410,7 @@ metrics.mean_absolute_error(y_test, rf_full.predict(X_test))
 # * Sampling techniques to ensure low generalization error and avoid overfitting
 #****************Needs to be updated
 from sklearn.cross_validation import StratifiedKFold
+#from sklearn.model_selection import cross_validation?
 cv = StratifiedKFold([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                       0, 0, 0, 0, 0, 0,], n_folds=3)
 #for idx in cv:
