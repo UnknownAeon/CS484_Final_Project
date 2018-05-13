@@ -8,22 +8,18 @@ import numpy as np
 import imblearn.under_sampling as un
 import pandas as pan
 from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.preprocessing import CategoricalEncoder
+#from sklearn.preprocessing import CategoricalEncoder
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from mlxtend.preprocessing import shuffle_arrays_unison
 from sklearn.model_selection import cross_val_score
+from sklearn import metrics
+
 
 ############## Data Preprocessing ###############
 """
-Test
-Reads in the baseline census training data, and the census test data.
-These values are stored into 2D lists of the form:
-[['v1', 'v2', 'v3', 'v4', ...], [...]],
-Where the inner lists represents each of the different census candidates.
-
 [Age, Workclass, Education (Number), Marital Status, Occupation, Relationship, Race, Sex, Capital Gain, Capital Loss, House per Week, Native Country, *Wage Label*]
 Age:
     Continuous
@@ -133,66 +129,56 @@ del censusData["education"]
 del censusData["fnlwgt"]
 del testData["education"]
 del testData["fnlwgt"]
+
 censusData.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
 testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
-print(censusData.loc[[5, 10, 15]])
-print(testData.loc[[5, 10, 15]])
+#print(censusData.loc[[5, 10, 15]])
+#print(testData.loc[[5, 10, 15]])
 
 # Trying to figure out the binarizer still..
-# binarizer = LabelBinarizer()
-# binarizer.fit_transform(dta.native_country.head(15)) # Makes binary double array
+#binarizer = LabelBinarizer()
+#binarizer.fit_transform(censusData.native_country.head(15)) # Makes binary double array
 
-"""
-file = open('../data/adult.data', 'r')
-censusData = []
-labels = []
-for line in file:
-    data = line.replace(',', '').split()
-    data.pop(2)
-    data.pop(2)
-    if (data[len(data) - 1] == '<=50K'):
-        labels.append(0)
-    elif (data[len(data) - 1] == '>50K'):
-        labels.append(1)
-    else:
-        raise ValueError('Improper Data Format')
-    for i in range(len(data)):
-        try:
-            data[i] = int(data[i])
-        except:
-            # We don't want to do anything if it can't cast - silently catch and move on.
-            pass
-    censusData.append(data)
-print(censusData[0:2])
-print(censusData[-1])
-file.close()
-labels = np.array(labels)
+##### Prepare the data #####
+censusLabels = censusData.pop("income")
+testLabels = testData.pop("income")
 
-file = open('../data/adult.test', 'r')
-testData = []
-testLabels = []
-for line in file:
-    data = line.replace(',', '').replace('.', '').split()
-    data.pop(2)
-    data.pop(2)
-    if (data[len(data) - 1] == '<=50K'):
-        testLabels.append(0)
-    elif (data[len(data) - 1] == '>50K'):
-        testLabels.append(1)
-    else:
-        raise ValueError('Improper Data Format')
-    for i in range(len(data)):
-        try:
-            data[i] = int(data[i])
-        except:
-            # We don't want to do anything if it can't cast - silently catch and move on.
-            pass
-    testData.append(data)
-file.close()
-testLabels = np.array(testLabels)
-############################################
+##### Pre-processing with pandas #####
+censusTrain = pan.get_dummies(censusData)
+testTrain = pan.get_dummies(testData)
 
 
+##### Deal with real life #####
+print(censusTrain.columns.equals(testTrain.columns)) # WILL BE FALSE
+# In the train data, someone has their native country as Holand-Netherlands, no one in the test data has that so we need to account for that. (Hence below the 90 and 91)
+print(censusTrain.shape) #(32561, 91)
+print(testTrain.shape) #(16281, 90)
+print(censusTrain.columns.difference(testTrain.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
+# In the array of differences, get the index 0 object (our only one anyways), then at that spot in testTrain make it = 0
+testTrain[censusTrain.columns.difference(testTrain.columns)[0]]= 0 
+# Preserve order
+testTrain = testTrain[censusTrain.columns]
+
+print(censusTrain.columns.equals(testTrain.columns)) # Should be true now...success!
+
+
+
+### Decision Tree Classifier ###
+dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
+dtree.fit(censusTrain, censusLabels)
+print('For Decision Tree Classifier, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, dtree.predict(testTrain))) # 0.1761562557582458
+
+
+### Naive Bayes Classifier ###
+nbayes = BernoulliNB()
+nbayes.fit(censusTrain, censusLabels)
+print('For Naive Bayes Classifier, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, nbayes.predict(testTrain))) #0.2588293102389288
+# ^^^ This seems too high of an error...
+
+
+'''
 ################ Encoding ##################
 encoder = CategoricalEncoder('ordinal')
 encodedData = encoder.fit_transform(censusData, labels)
@@ -201,7 +187,7 @@ print(encodedData)
 print(encodedTest)
 # print(encoder.inverse_transform(encodedData))
 ############################################
-"""
+'''
 '''
 ############## Undersampling ###############
 undersampled = un.EditedNearestNeighbours()
@@ -209,9 +195,9 @@ undersampled = un.EditedNearestNeighbours()
 usTrain, usLabels = undersampled.fit_sample(censusData, labels)
 usTrain = scp.csr_matrix(usTrain)
 ############################################
-
-###HW2 Below###
 '''
+###HW2 Below###
+
 '''
 # Create a Sparse Matrix from a list
 def CreateSparseMatrix(drugs):
