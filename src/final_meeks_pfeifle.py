@@ -15,6 +15,7 @@ from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
 from mlxtend.preprocessing import shuffle_arrays_unison
 from sklearn.model_selection import cross_val_score
+from sklearn.svm import SVC
 from sklearn import metrics
 
 
@@ -143,9 +144,13 @@ testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
 censusLabels = censusData.pop("income")
 testLabels = testData.pop("income")
 
+# print(censusData.head())
+
 ##### Pre-processing with pandas #####
 censusTrain = pan.get_dummies(censusData)
 testTrain = pan.get_dummies(testData)
+
+print(censusTrain.head())
 
 
 ##### Deal with real life #####
@@ -155,13 +160,13 @@ print(censusTrain.shape) #(32561, 91)
 print(testTrain.shape) #(16281, 90)
 print(censusTrain.columns.difference(testTrain.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
 # In the array of differences, get the index 0 object (our only one anyways), then at that spot in testTrain make it = 0
-testTrain[censusTrain.columns.difference(testTrain.columns)[0]]= 0 
+testTrain[censusTrain.columns.difference(testTrain.columns)[0]]= 0
 # Preserve order
 testTrain = testTrain[censusTrain.columns]
 
 print(censusTrain.columns.equals(testTrain.columns)) # Should be true now...success!
 
-
+# TODO: c4.5, undersample bayes
 
 ### Decision Tree Classifier ###
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
@@ -177,6 +182,31 @@ print('For Naive Bayes Classifier, the mean absolute error is:')
 print(metrics.mean_absolute_error(testLabels, nbayes.predict(testTrain))) #0.2588293102389288
 # ^^^ This seems too high of an error...
 
+## KNN Classifiers, wrote it out a bunch of times instead of just putting the best - might be good  to include
+# the process of trying different values in the report for comparisions.
+### K Nearest Neighbors Classifier (KNN = 1)###
+knn = KNeighborsClassifier(n_neighbors=1)
+knn.fit(censusTrain, censusLabels)
+print('For K=1 Nearest Neighbors Classifier, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.18125422271359254
+
+### K Nearest Neighbors Classifier (KNN = 3)###
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(censusTrain, censusLabels)
+print('For K=3 Nearest Neighbors Classifier, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.15969535040845156
+
+### K Nearest Neighbors Classifier (KNN = 5)###
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(censusTrain, censusLabels)
+print('For K=5 Nearest Neighbors Classifier, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.1487623610343345
+
+### Support Vector Classifier (SVM) - Warning: This takes quite a while ###
+svm = SVC()
+svm.fit(censusTrain, censusLabels)
+print('For SVM classifier SVC, the mean absolute error is:')
+print(metrics.mean_absolute_error(testLabels, svm.predict(testTrain))) #0.13088876604631164
 
 '''
 ################ Encoding ##################
