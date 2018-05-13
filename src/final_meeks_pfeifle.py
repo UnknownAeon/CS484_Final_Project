@@ -166,7 +166,7 @@ testTrain = testTrain[censusTrain.columns]
 
 print(censusTrain.columns.equals(testTrain.columns)) # Should be true now...success!
 
-# TODO: c4.5, undersample bayes
+# TODO: undersample bayes
 
 ### Decision Tree Classifier ###
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
@@ -176,10 +176,12 @@ print(metrics.mean_absolute_error(testLabels, dtree.predict(testTrain))) # 0.176
 
 
 ### Naive Bayes Classifier ###
+under = un.RandomUnderSampler()
+sampledTestTrain, sampledTestLabels = under.fit_sample(testTrain, testLabels)
 nbayes = BernoulliNB()
 nbayes.fit(censusTrain, censusLabels)
 print('For Naive Bayes Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, nbayes.predict(testTrain))) #0.2588293102389288
+print(metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestTrain))) #0.23634945397815912
 # ^^^ This seems too high of an error...
 
 ## KNN Classifiers, wrote it out a bunch of times instead of just putting the best - might be good  to include
@@ -202,30 +204,12 @@ knn.fit(censusTrain, censusLabels)
 print('For K=5 Nearest Neighbors Classifier, the mean absolute error is:')
 print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.1487623610343345
 
-### Support Vector Classifier (SVM) - Warning: This takes quite a while ###
+### Support Vector Classifier (SVM) - Warning: This takes a few minutes, comment it out if you dont want to wait. ###
 svm = SVC()
 svm.fit(censusTrain, censusLabels)
 print('For SVM classifier SVC, the mean absolute error is:')
 print(metrics.mean_absolute_error(testLabels, svm.predict(testTrain))) #0.13088876604631164
 
-'''
-################ Encoding ##################
-encoder = CategoricalEncoder('ordinal')
-encodedData = encoder.fit_transform(censusData, labels)
-encodedTest = encoder.fit_transform(testData)
-print(encodedData)
-print(encodedTest)
-# print(encoder.inverse_transform(encodedData))
-############################################
-'''
-'''
-############## Undersampling ###############
-undersampled = un.EditedNearestNeighbours()
-#undersampled = un.RepeatedEditedNearestNeighbours()
-usTrain, usLabels = undersampled.fit_sample(censusData, labels)
-usTrain = scp.csr_matrix(usTrain)
-############################################
-'''
 ###HW2 Below###
 
 '''
