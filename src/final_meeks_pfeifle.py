@@ -3,18 +3,15 @@ Names: Kevin Pfeifle and Nolan Meeks
 CS 484-001: Data Mining
 Final Project - Census Data Classification
 '''
-import scipy.sparse as scp
-import numpy as np
-import imblearn.under_sampling as un
+
 import pandas as pan
-from sklearn.feature_selection import SelectKBest, chi2
-from sklearn.preprocessing import LabelBinarizer
-from sklearn.neighbors import KNeighborsClassifier
+import scipy.sparse as scp
+import imblearn.under_sampling as un
+from sklearn import metrics
+from sklearn.svm import SVC
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import SVC
-from sklearn import metrics
-
+from sklearn.neighbors import KNeighborsClassifier
 
 ############## Data Preprocessing ###############
 """
@@ -133,11 +130,6 @@ del testData["fnlwgt"]
 ############## Create our labels in place of the income column. Use <=50K for 0, >50K for 1 ##############
 censusData.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
 testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
-
-# Trying to figure out the binarizer still..
-# We don't need a binerizer if we use the get_dummies function with pandas!
-#binarizer = LabelBinarizer()
-#binarizer.fit_transform(censusData) # Makes binary double array
 
 ################ Take off our income columns to use as our label arrays #########################
 censusLabels = censusData.pop("income")
