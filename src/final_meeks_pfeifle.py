@@ -168,19 +168,21 @@ testFeatures = testFeatures[censusTrain.columns]
 # TODO: undersample bayes -- DONE
 
 ### Decision Tree Classifier ###
-dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
+#dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
+# Want to prune the tree above, not supported in sklearn, to do this we can set a max depth!
+# A max depth of 10 acheived the best accuracy, leave it at that.
+dtree = DecisionTreeClassifier(criterion='entropy', random_state=0, max_depth = 10)
 dtree.fit(censusTrain, censusLabels)
 print('For Decision Tree Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, dtree.predict(testFeatures))) # 0.1761562557582458
-
+print(metrics.mean_absolute_error(testLabels, dtree.predict(testFeatures))) # 0.13911921872120878
 
 ### Naive Bayes Classifier ###
-under = un.RandomUnderSampler()
+under = un.RandomUnderSampler(random_state=0)
 sampledTestTrain, sampledTestLabels = under.fit_sample(testFeatures, testLabels)
 nbayes = BernoulliNB()
 nbayes.fit(censusTrain, censusLabels)
 print('For Naive Bayes Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestTrain))) #0.23634945397815912
+print(metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestTrain))) #0.24167966718668746
 # ^^^ This seems too high of an error...
 
 ## KNN Classifiers, wrote it out a bunch of times instead of just putting the best - might be good  to include
@@ -204,90 +206,7 @@ print('For K=5 Nearest Neighbors Classifier, the mean absolute error is:')
 print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.1487623610343345
 
 ### Support Vector Classifier (SVM) - Warning: This takes a few minutes, comment it out if you dont want to wait. ###
-svm = SVC()
+svm = SVC(random_state=0)
 svm.fit(censusTrain, censusLabels)
 print('For SVM classifier SVC, the mean absolute error is:')
 print(metrics.mean_absolute_error(testLabels, svm.predict(testFeatures))) #0.13088876604631164
-
-###HW2 Below###
-
-'''
-# Create a Sparse Matrix from a list
-def CreateSparseMatrix(drugs):
-    ones = []
-    drugIndexes = []
-    drugFeatures = []
-
-    for index, drug in enumerate(drugs):
-        features = map(int, drug.split())
-        for featureVal in features:
-            ones.append(1)
-            drugIndexes.append(index)
-            drugFeatures.append(featureVal - 1)
-    return scp.coo_matrix((ones, (drugIndexes, drugFeatures)), shape = [len(drugs), 100000]).tocsr()
-
-
-def main():
-
-	### Modifiable Parameters: ###
-	k_features = 316
-	kneighbors = 30
-	chosenClassifier = 'bnbClassifier'
-	#chosenClassifier = 'knnClassifier'
-	#chosenClassifier = 'dtcClassifier'
-
-
-	############# Prepare the data #############
-	labelsData = []
-	trainDrugs = []
-	testDrugs = []
-	# Open files
-	with open('traindrugs.txt', 'r') as drugs:
-		data = drugs.readlines()
-		for line in data:
-			line=line.split('\t')
-			labelsData.append(int(line[0]))
-			trainDrugs.append(line[1])
-	with open('testdrugs.txt', 'r') as newDoc:
-		newData = newDoc.readlines()
-		for line in newData:
-			testDrugs.append(line)
-	# Create Numpy Array of the labels for use as array
-	labels = np.array(labelsData)
-
-	# Create Sparse Matrices of the data
-	sparseTrain = CreateSparseMatrix(trainDrugs)
-	sparseTest = CreateSparseMatrix(testDrugs)
-	############################################
-
-
-	############### Classifiers ################
-	# KNN
-	#clf = KNeighborsClassifier(n_neighbors=kneighbors)
-	# Bernoulli-NB
-	clf = BernoulliNB()
-	# DTC
-	#clf = DecisionTreeClassifier()
-
-	# Properly fit the classified features with the labels for each drug, and predict
-	# 	whether the test drugs are active or not
-	clf.fit(usTrain, usLabels)
-	results = clf.predict(kbestTest)
-	############################################
-
-
-	############# Cross-Validation #############
-	randomTrain, randomLabels = shuffle_arrays_unison(arrays=[kbestTrain, labels])
-	CVScores = cross_val_score(clf, randomTrain, randomLabels, scoring = 'f1', cv = 10)
-	############################################
-
-
-	################## Write ##################
-	print(chosenClassifier + "_" + str(k_features) + "Features")
-	print(str(CVScores))
-	print(str(np.mean(CVScores)))
-	np.savetxt(chosenClassifier + "_" + str(k_features) + "Features" + ".txt", results, fmt='%s')
-	############################################
-
-main()
-'''
