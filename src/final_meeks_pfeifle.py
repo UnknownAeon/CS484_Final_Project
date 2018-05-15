@@ -124,8 +124,8 @@ Native Country:
 
 """
 
-censusData = pan.read_csv("../data/adult.data.cleaned.csv")
-testData = pan.read_csv("../data/adult.test.cleaned.csv")
+censusData = pan.read_csv("../data/adult.data.csv")
+testData = pan.read_csv("../data/adult.test.csv")
 del censusData["education"]
 del censusData["fnlwgt"]
 del testData["education"]
@@ -133,12 +133,12 @@ del testData["fnlwgt"]
 
 censusData.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
 testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
-#print(censusData.loc[[5, 10, 15]])
-#print(testData.loc[[5, 10, 15]])
+#print(censusData["income"].head())
 
 # Trying to figure out the binarizer still..
+# We don't need a binerizer if we use the get_dummies function with pandas!
 #binarizer = LabelBinarizer()
-#binarizer.fit_transform(censusData.native_country.head(15)) # Makes binary double array
+#binarizer.fit_transform(censusData) # Makes binary double array
 
 ##### Prepare the data #####
 censusLabels = censusData.pop("income")
@@ -148,36 +148,35 @@ testLabels = testData.pop("income")
 
 ##### Pre-processing with pandas #####
 censusTrain = pan.get_dummies(censusData)
-testTrain = pan.get_dummies(testData)
+testFeatures = pan.get_dummies(testData)
 
-print(censusTrain.head())
+# print(censusTrain.head())
 
 
-##### Deal with real life #####
-print(censusTrain.columns.equals(testTrain.columns)) # WILL BE FALSE
+##### The train and test aren't equal in size, need to fix before classification! #####
+#print(censusTrain.columns.equals(testFeatures.columns)) # WILL BE FALSE
 # In the train data, someone has their native country as Holand-Netherlands, no one in the test data has that so we need to account for that. (Hence below the 90 and 91)
-print(censusTrain.shape) #(32561, 91)
-print(testTrain.shape) #(16281, 90)
-print(censusTrain.columns.difference(testTrain.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
-# In the array of differences, get the index 0 object (our only one anyways), then at that spot in testTrain make it = 0
-testTrain[censusTrain.columns.difference(testTrain.columns)[0]]= 0
+#print(censusTrain.shape) #(32561, 91)
+#print(testFeatures.shape) #(16281, 90)
+#print(censusTrain.columns.difference(testFeatures.columns)) # Index(['native_country_Holand-Netherlands'], dtype='object')
+# In the array of differences, get the index 0 object (our only one anyways), then at that spot in testFeatures make it = 0
+testFeatures[censusTrain.columns.difference(testFeatures.columns)[0]]= 0
 # Preserve order
-testTrain = testTrain[censusTrain.columns]
+testFeatures = testFeatures[censusTrain.columns]
+#print(censusTrain.columns.equals(testFeatures.columns)) # Should be true now...success!
 
-print(censusTrain.columns.equals(testTrain.columns)) # Should be true now...success!
-
-# TODO: undersample bayes
+# TODO: undersample bayes -- DONE
 
 ### Decision Tree Classifier ###
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
 dtree.fit(censusTrain, censusLabels)
 print('For Decision Tree Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, dtree.predict(testTrain))) # 0.1761562557582458
+print(metrics.mean_absolute_error(testLabels, dtree.predict(testFeatures))) # 0.1761562557582458
 
 
 ### Naive Bayes Classifier ###
 under = un.RandomUnderSampler()
-sampledTestTrain, sampledTestLabels = under.fit_sample(testTrain, testLabels)
+sampledTestTrain, sampledTestLabels = under.fit_sample(testFeatures, testLabels)
 nbayes = BernoulliNB()
 nbayes.fit(censusTrain, censusLabels)
 print('For Naive Bayes Classifier, the mean absolute error is:')
@@ -190,25 +189,25 @@ print(metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestT
 knn = KNeighborsClassifier(n_neighbors=1)
 knn.fit(censusTrain, censusLabels)
 print('For K=1 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.18125422271359254
+print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.18125422271359254
 
 ### K Nearest Neighbors Classifier (KNN = 3)###
 knn = KNeighborsClassifier(n_neighbors=3)
 knn.fit(censusTrain, censusLabels)
 print('For K=3 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.15969535040845156
+print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.15969535040845156
 
 ### K Nearest Neighbors Classifier (KNN = 5)###
 knn = KNeighborsClassifier(n_neighbors=5)
 knn.fit(censusTrain, censusLabels)
 print('For K=5 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testTrain))) #0.1487623610343345
+print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.1487623610343345
 
 ### Support Vector Classifier (SVM) - Warning: This takes a few minutes, comment it out if you dont want to wait. ###
 svm = SVC()
 svm.fit(censusTrain, censusLabels)
 print('For SVM classifier SVC, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, svm.predict(testTrain))) #0.13088876604631164
+print(metrics.mean_absolute_error(testLabels, svm.predict(testFeatures))) #0.13088876604631164
 
 ###HW2 Below###
 
