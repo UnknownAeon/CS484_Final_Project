@@ -8,13 +8,10 @@ import numpy as np
 import imblearn.under_sampling as un
 import pandas as pan
 from sklearn.feature_selection import SelectKBest, chi2
-#from sklearn.preprocessing import CategoricalEncoder
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.tree import DecisionTreeClassifier
-from mlxtend.preprocessing import shuffle_arrays_unison
-from sklearn.model_selection import cross_val_score
 from sklearn.svm import SVC
 from sklearn import metrics
 
@@ -123,37 +120,35 @@ Native Country:
     41. Holand-Netherlands
 
 """
-
+######################### Read in the data with Pandas #########################
 censusData = pan.read_csv("../data/adult.data.csv")
 testData = pan.read_csv("../data/adult.test.csv")
+
+######################### Take out unnecessary columns #########################
 del censusData["education"]
 del censusData["fnlwgt"]
 del testData["education"]
 del testData["fnlwgt"]
 
+############## Create our labels in place of the income column. Use <=50K for 0, >50K for 1 ##############
 censusData.income.replace({"<=50K": 0, ">50K": 1}, inplace=True)
 testData.income.replace({"<=50K.": 0, ">50K.": 1}, inplace=True)
-#print(censusData["income"].head())
 
 # Trying to figure out the binarizer still..
 # We don't need a binerizer if we use the get_dummies function with pandas!
 #binarizer = LabelBinarizer()
 #binarizer.fit_transform(censusData) # Makes binary double array
 
-##### Prepare the data #####
+################ Take off our income columns to use as our label arrays #########################
 censusLabels = censusData.pop("income")
 testLabels = testData.pop("income")
 
-# print(censusData.head())
-
-##### Pre-processing with pandas #####
+############### Use get_dummies to convert/encode our categorical variables into dummy(indicator) variables ###############
+##### We need to do this in order for our classifiers to be able to work! Can't handle continuous & categorical data ######
 censusTrain = pan.get_dummies(censusData)
 testFeatures = pan.get_dummies(testData)
 
-# print(censusTrain.head())
-
-
-##### The train and test aren't equal in size, need to fix before classification! #####
+#################### The train and test aren't equal in size, need to fix before classification! #########################
 #print(censusTrain.columns.equals(testFeatures.columns)) # WILL BE FALSE
 # In the train data, someone has their native country as Holand-Netherlands, no one in the test data has that so we need to account for that. (Hence below the 90 and 91)
 #print(censusTrain.shape) #(32561, 91)
@@ -165,48 +160,55 @@ testFeatures[censusTrain.columns.difference(testFeatures.columns)[0]]= 0
 testFeatures = testFeatures[censusTrain.columns]
 #print(censusTrain.columns.equals(testFeatures.columns)) # Should be true now...success!
 
-# TODO: undersample bayes -- DONE
 
-### Decision Tree Classifier ###
+######################################## CLASSIFIERS ########################################
+print('\n')
+
+#################### Decision Tree Classifier ####################
 #dtree = DecisionTreeClassifier(criterion='entropy', random_state=0)
 # Want to prune the tree above, not supported in sklearn, to do this we can set a max depth!
 # A max depth of 10 acheived the best accuracy, leave it at that.
 dtree = DecisionTreeClassifier(criterion='entropy', random_state=0, max_depth = 10)
 dtree.fit(censusTrain, censusLabels)
-print('For Decision Tree Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, dtree.predict(testFeatures))) # 0.13911921872120878
+error = metrics.mean_absolute_error(testLabels, dtree.predict(testFeatures))
+print('For Decision Tree Classifier, the mean absolute error is: {0}'.format(error)) # 0.13911921872120878
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
 
-### Naive Bayes Classifier ###
+#################### Naive Bayes Classifier ####################
 under = un.RandomUnderSampler(random_state=0)
 sampledTestTrain, sampledTestLabels = under.fit_sample(testFeatures, testLabels)
 nbayes = BernoulliNB()
 nbayes.fit(censusTrain, censusLabels)
-print('For Naive Bayes Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestTrain))) #0.24167966718668746
-# ^^^ This seems too high of an error...
+error = metrics.mean_absolute_error(sampledTestLabels, nbayes.predict(sampledTestTrain))
+print('For Naive Bayes Classifier, the mean absolute error is: {0}'.format(error)) # 0.24167966718668746 <- This seems like a bit high for error?
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
 
-## KNN Classifiers, wrote it out a bunch of times instead of just putting the best - might be good  to include
-# the process of trying different values in the report for comparisions.
-### K Nearest Neighbors Classifier (KNN = 1)###
+############################## K Nearest Neighbors Classifiers ##############################
+# Tried several values we could record the accuracy for for comparison and discussion in the report.
+#################### K Nearest Neighbors Classifier (KNN = 1) ####################
 knn = KNeighborsClassifier(n_neighbors=1)
 knn.fit(censusTrain, censusLabels)
-print('For K=1 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.18125422271359254
+error = metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))
+print('For K=1 Nearest Neighbors Classifier, the mean absolute error is: {0}'.format(error)) # 0.18125422271359254
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
 
-### K Nearest Neighbors Classifier (KNN = 3)###
+#################### K Nearest Neighbors Classifier (KNN = 3) ####################
 knn = KNeighborsClassifier(n_neighbors=3)
 knn.fit(censusTrain, censusLabels)
-print('For K=3 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.15969535040845156
+error = metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))
+print('For K=3 Nearest Neighbors Classifier, the mean absolute error is: {0}'.format(error)) # 0.15969535040845156
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
 
-### K Nearest Neighbors Classifier (KNN = 5)###
+#################### K Nearest Neighbors Classifier (KNN = 5) ####################
 knn = KNeighborsClassifier(n_neighbors=5)
 knn.fit(censusTrain, censusLabels)
-print('For K=5 Nearest Neighbors Classifier, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))) #0.1487623610343345
+error = metrics.mean_absolute_error(testLabels, knn.predict(testFeatures))
+print('For K=5 Nearest Neighbors Classifier, the mean absolute error is: {0}'.format(error)) # 0.1487623610343345
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
 
-### Support Vector Classifier (SVM) - Warning: This takes a few minutes, comment it out if you dont want to wait. ###
+#################### Support Vector Classifier (SVM) ####################
 svm = SVC(random_state=0)
 svm.fit(censusTrain, censusLabels)
-print('For SVM classifier SVC, the mean absolute error is:')
-print(metrics.mean_absolute_error(testLabels, svm.predict(testFeatures))) #0.13088876604631164
+error = metrics.mean_absolute_error(testLabels, svm.predict(testFeatures))
+print('For SVM classifier SVC, the mean absolute error is: {0}'.format(error)) # 0.13088876604631164
+print('and the accuracy score is thus: {0}\n'.format(1 - error))
